@@ -32,7 +32,6 @@ interface PaymentExternalSystemAdapter {
     fun parallelRequests(): Int
 
     fun rateLimit(): Int
-
 }
 
 /**
