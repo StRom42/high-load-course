@@ -32,7 +32,9 @@ class PaymentExternalSystemAdapterImpl(
     private val accountName = properties.accountName
     private val requestAverageProcessingTime = properties.averageProcessingTime
 
-    private val client = OkHttpClient.Builder().build()
+    private val client = OkHttpClient.Builder()
+        .readTimeout(Duration.ofMillis((requestAverageProcessingTime.toMillis() * 1.3).toLong()))
+        .build()
 
     override suspend fun performPaymentAsync(paymentId: UUID, amount: Int, paymentStartedAt: Long, deadline: Long) {
         logger.warn("[$accountName] Submitting payment request for payment $paymentId")
@@ -98,10 +100,8 @@ class PaymentExternalSystemAdapterImpl(
         } while (!success && attempt <= maxRetries)
     }
 
-
-
     override fun isDeadlineExceeded(deadline: Long): Boolean =
-        now() + requestAverageProcessingTime.toMillis() * 1.5 >= deadline
+        now() + requestAverageProcessingTime.toMillis() * 1.2 >= deadline
 
     override fun failPayment(paymentId: UUID) {
         paymentESService.update(paymentId) {
