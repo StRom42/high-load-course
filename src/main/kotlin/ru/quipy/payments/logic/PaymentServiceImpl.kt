@@ -26,7 +26,7 @@ class PaymentSystemImpl(
 
     val rateLimiterMap = paymentAccounts.associate {
         it.name() to CustomSlidingWindowRateLimiter(
-            rate = 1,
+            rate = it.rateLimit().toLong(),
             window = Duration.ofMillis(600)
         )
     }
