@@ -1,8 +1,10 @@
 package ru.quipy.payments.logic
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -15,7 +17,8 @@ import java.util.*
 
 @Service
 class PaymentSystemImpl(
-    private val paymentAccounts: List<PaymentExternalSystemAdapter>
+    private val paymentAccounts: List<PaymentExternalSystemAdapter>,
+    private val paymentESService: EventSourcingService<UUID, PaymentAggregate, PaymentAggregateState>
 ) : PaymentService {
     companion object {
         val logger = LoggerFactory.getLogger(PaymentSystemImpl::class.java)
@@ -23,7 +26,7 @@ class PaymentSystemImpl(
 
     val rateLimiterMap = paymentAccounts.associate {
         it.name() to CustomSlidingWindowRateLimiter(
-            rate = 1,
+            rate = it.rateLimit().toLong(),
             window = Duration.ofMillis(600)
         )
     }
