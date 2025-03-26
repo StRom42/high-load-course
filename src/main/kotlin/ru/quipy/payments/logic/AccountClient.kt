@@ -30,6 +30,7 @@ class AccountClient(
 
     private val client = OkHttpClient.Builder()
         .readTimeout(Duration.ofMillis((properties.averageProcessingTime.toMillis() * 1.4).toLong()))
+        .connectionPool(ConnectionPool(properties.parallelRequests, 5, TimeUnit.MINUTES))
         .build()
 
     private val rateLimiter = CustomSlidingWindowRateLimiter(
